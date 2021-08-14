@@ -1,3 +1,4 @@
+C:\Program Files\PostgreSQL\13
 
 ALTER DATABASE your_db OWNER TO your_django_db_user
 
