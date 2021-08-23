@@ -1,0 +1,2 @@
+ w = datetime.date.today() - c.sign_date
+ w.days
