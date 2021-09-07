@@ -12,7 +12,7 @@ sudo -u postgres psql -f /home/hesam/projects/faramiran/data000312.out faramiran
 
 \c faramiran2
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO fara;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO root;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO fara;
 
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO fara;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO fara;
