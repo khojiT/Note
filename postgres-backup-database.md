@@ -21,3 +21,5 @@ REASSIGN OWNED BY root to fara ;
 
 
 psql.exe -U USERNAME -d DATABASENAME -f  BACKUP_FILE_NAME.sql
+---
+https://stackoverflow.com/questions/62472371/psycopg2-errors-insufficientprivilege-permission-denied-for-relation-django-mig
