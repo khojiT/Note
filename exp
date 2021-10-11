@@ -19,5 +19,169 @@
         else:
             # q = contract.objects.filter(status = self.value()).values_list('vcc', flat=True)
             # print('q',q)
-            return queryset.filter(contract__status = self.value())```
-     
+            return queryset.filter(contract__status = self.value()) ```
+            
+            
+ 
+def supp(request):
+    if request.method == 'POST':
+        
+        financing_form = vccForm(request.POST)
+        if financing_form.is_valid():
+            
+            supplier = financing_form.cleaned_data["supp"]
+
+            all = contract.objects.filter(supplier__in = supplier )
+
+            tot_pay = all.aggregate(tot_pay = Sum('face_net_amount'))
+            tot_payments = all.annotate(pay = Sum('payments__amount')).aggregate(tot_pay = Sum('pay'))
+            all_final = all.exclude(status__in = ['0','1','7'])
+            tot_payy = all_final.aggregate(tot_payy = Sum('face_net_amount'))
+            aghd = all.filter(status__in = ['0','1'])
+            aghd_pay = aghd.aggregate(tot_pay = Sum('face_net_amount'))
+            all_cancel = all.filter(status = '7')
+            tot_payy_cancel = all_cancel.aggregate(tot_payy = Sum('face_net_amount'))
+            all_final_l1 = all.filter( customer__level = '1').exclude(status__in = ['0','1','7'])
+            
+            tot_payy_l1 = all_final_l1.aggregate(tot_payy = Sum('face_net_amount'))
+            
+            all_final_l2 = all.filter( customer__level = '2').exclude(status__in = ['0','1','7'])
+            tot_payy_l2 = all_final_l2.aggregate(tot_payy = Sum('face_net_amount'))
+            
+            all_final_l3 = all.filter( customer__level = '3').exclude(status__in = ['0','1','7'])
+            tot_payy_l3 = all_final_l3.aggregate(tot_payy = Sum('face_net_amount'))
+            
+            all_shop = all.filter(status = '3')
+            x1 = 0
+            
+            for c in all_final:
+                x1 += c.supplier_balance
+            
+            ta = all.filter(status = '2')
+            
+            x2 = 0
+            for c in ta:
+                x2 += c.supplier_balance
+            
+            taa = all.filter(status = '1')
+            x3 = 0
+            for c in taa:
+                x3 += c.supplier_balance
+            x4 = 0
+            for c in aghd:
+                x4 += c.supplier_balance
+            
+            pa = all.filter(status = '4')
+            z = 0
+            aa = 0
+            sa = 0
+            saa = 0
+            list_of_ids_takh = []
+            list_of_ids_moa = []
+            for con in pa:
+                po = con.debit_amount()
+                if po > 0:
+                    qq = po // con.instalment_amount
+                    if qq < (con.number_of_instalment// 12) +1:
+                        z += 1
+                        aa += po
+                    else:
+                        sa += 1
+                        saa += po
+           
+            l6 = z
+            l7 = aa
+            l8 = sa
+            l9 = saa 
+            
+            
+            nok = all.filter(status = '6')
+            ee = 0
+            for c in nok:
+                ee += c.debit_amount()
+            
+            www = 0
+            for c in nok:
+                www += c.total_amount_of_instalments
+            
+            l10 = z + sa +n(nok)
+            l11 = ee + saa + aa
+            nokk = nok.annotate(pay = Sum('payments__amount')).aggregate(tot_pay = Sum('pay'))
+            payy = nokk['tot_pay']
+            
+            try:
+                bedehi = l11 / tot_payments['tot_pay']*100
+                bedehi = round(bedehi,2)
+            except:
+                bedehi = 0
+            if payy is  None:
+                payy = 0
+            
+            f = www - payy
+            vcc_tot  = z + sa + n(nok)
+            vcc_tot_debit = aa + saa + ee
+            nok1 = www - payy 
+            vcc_q = nok1 + aa + saa
+            if tot_payments['tot_pay'] is None:
+                tot_payments['tot_pay'] = 1
+            nookk = nok1 / tot_payments['tot_pay']
+            try:
+                nookk = nok1 / tot_payments['tot_pay']*100
+                nookk = round(nookk,2)
+                print(nookk,'ddddddddd')
+            except:
+                nookk = 0
+            print(tot_payy['tot_payy'],22)
+            st = []
+            for item in supplier:
+                st.append(item.name)
+            print(st)
+            zzz = n(all_final)
+            if zzz == 0:
+                zzz = 1
+            
+            document = MailMerge("contract_docs/supp_mailmerge.docx")
+            context = {"date" : str(persian_numbers_converter(jalali.Gregorian(date.today()).persian_string('{}/{}/{}'))) ,
+              "supplier_name" : ','.join(st) ,
+              "tashkil_count" : str(p(n(all))), 
+              "tashkil_net_amount" : str(p(tot_pay['tot_pay'])),
+              "nahai_count" : str(p(n(all_final))),
+              "nahai_net_amount" : str(p(tot_payy['tot_payy'])),
+              "aghd_count" : str(p(n(aghd))),
+              "aghd_net_amount" : str(p(aghd_pay['tot_pay'])),
+              "enseraf_count" : str(p(n(all_cancel))) ,
+              "enseraf_net_amount" : str(p(tot_payy_cancel['tot_payy'])),
+              "level1_count" : str(p(n(all_final_l1))),
+              "level1_net_amount" : str(p(tot_payy_l1['tot_payy'])),
+              "level2_count" : str(p(n(all_final_l2))),
+              "level2_net_amount" : str(p(tot_payy_l2['tot_payy'])),
+              "level3_count" : str(p(n(all_final_l3))),
+              "level3_net_amount" : str(p(tot_payy_l3['tot_payy'])),
+              "nahai_suppbalance" : str(p(x1)),
+              "taid_suppbalance" : str(p(x2)),
+              "aghd_suppbalance" : str(p(x4)),
+              "vcc_count" : str(p(l10)),
+              "vcc_debt" : str(p(l11)),
+              "vcc_count_rate" : str(p(round(l10/zzz,3)*100)),
+              "vcc_debt_rate" : str(p(bedehi)),
+              "nokol_count" : str(p(n(nok))),
+              "nokol_total_debt" : str(p(nok1)),
+              "nokol_total_debt_rate" : str(p(nookk)),
+              
+            }
+            print (context)
+            document.merge(**context)
+            destination = 'contract_docs/supp_mailmerge_out.docx'
+            document.write(destination)
+            document.close()
+
+            source = "contract_docs/supp_mailmerge_out.docx"
+            pdf_dest = 'contract_docs/supp'
+            os.system ("libreoffice --headless --convert-to pdf --outdir "+pdf_dest + " "+ source)
+            pdf =  'contract_docs/supp/supp_mailmerge_out.pdf'
+
+
+            return FileResponse(open(pdf,'rb'),as_attachment = True)
+    else:
+        finance_form = vccForm()
+        return render(request, 'vccForm.html', { 'vccForm' : finance_form , })
