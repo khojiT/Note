@@ -1,0 +1,23 @@
+```class contract_statusFilter(admin.SimpleListFilter):
+    template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
+    title = 'وضعیت قرارداد '
+    parameter_name = 'contract_status'
+    def lookups(self, request, model_admin):
+        
+            return (
+               
+                ('4' , 'پرداخت اقساط توسط متقاضی'),
+                
+                ('6' , 'نکول قطعی'),
+                
+            )
+
+    def queryset(self, request, queryset):
+       
+        if self.value() is None:
+            return queryset
+        else:
+            # q = contract.objects.filter(status = self.value()).values_list('vcc', flat=True)
+            # print('q',q)
+            return queryset.filter(contract__status = self.value())```
+     
